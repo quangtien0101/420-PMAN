@@ -13,29 +13,29 @@ def get_legal_actions(agent, Map):
     agent.legal_actions = ["up","left","down","right","still"]
     if (x > 0):
         if (Map.data[y][x-1] == Map.symbol.wall):
-            agent.legal_actions.remove("left")
+            agent.remove_actions("left")
     else:
-        agent.legal_actions.remove("left")
+        agent.remove_actions("left")
 
     if (x < Map.width -1):
         if (Map.data[y][x+1] == Map.symbol.wall):
-            agent.legal_actions.remove("right")
+            agent.remove_actions("right")
 
     else:
-        agent.legal_actions.remove("right")
+        agent.remove_actions("right")
 
     if (y > 0):
         if (Map.data[y-1][x] == Map.symbol.wall):
-            agent.legal_actions.remove("up")
+            agent.remove_actions("up")
             
     else:
-        agent.legal_actions.remove("up")
+        agent.remove_actions("up")
 
     if (y < Map.height - 1):
         if (Map.data[y+1][x] == Map.symbol.wall):
-            agent.legal_actions.remove("down")
+            agent.remove_actions("down")
     else:
-            agent.legal_actions.remove("down")
+            agent.remove_actions("down")
 
 def main():
     #generate maps

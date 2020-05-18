@@ -1,33 +1,40 @@
 #!/usr/local/bin/python3 
 from misc import *
 from game_map import *
+
+from random import seed
+from random import randint
+
 class Pacman:
     def __init__ (self, location, view, map_dimension, food):
         self.location = location # a list [x,y], pacman current location
-        self.food = food # an int, the total number of food
+        self.food = food # an int, the total number of food, map provided
         self.view = view # an interger 5
         #Pac man has it's own map to calculate and stores the manhattan distance
         self.manhattan_distance = Map(map_dimension[0], map_dimension[1])
 
+        #Pacman personal map since it can't see the whole world
         self.map = Map(map_dimension[0], map_dimension[1])
         self.legal_actions = ["up","down","left","right","still"]        
         
         self.symbol = Symbol()
 
         # this will be the goals that pacman will try to reach in order to scan the map
-        goals_pos = self.generate_goal_possitions_for_map_scanning()
+        self.goals_pos = self.generate_goal_possitions_for_map_scanning()
         self.map_scaned = False # this indicate wether if pacman has learn about the whole map
 
-    def generate_successor(self):
-        
-        #calculate the manhattan distance of all the tiles in i's view
+        self.food_pos = [] #this contains the list of food locations that pacman need to reach
 
-        pass
+    def remove_actions(self, direction):        
+        try:
+            self.legal_actions.remove(direction)
+        except ValueError:
+            print ("directions not in current legal actions")
 
 
     # sense if there is any monster near pacman (manhattan distance <= 2)
     def monster_sense(self, global_map):
-        danger_zone = self.calculate_manhattan_distance()
+        danger_zone = self.calculate_manhattan_distance(global_map)
 
         monster_location = []
         # now we check if there is any monster in the danger zone
@@ -47,26 +54,23 @@ class Pacman:
     def escaping_monster(self, monster_list):
         for i in monster_list:
             if (i[0] < self.location[0]): # don't go left
-                try:                    
-                    self.legal_actions.remove("left")
-                except ValueError:
-                    pass
+                self.remove_actions("left")
 
             if (i[1] > self.locationp[1]): #don't go up
                 try:                    
-                    self.legal_actions.remove("up")
+                    self.remove_actions("up")
                 except ValueError:
                     pass
 
             if (i[1] < self.location[1]): #don't go down
                 try:                    
-                    self.legal_actions.remove("down")
+                    self.remove_actions("down")
                 except ValueError:
                     pass
 
             if (i[0] > self.location[0]): # don't go right
                 try:                    
-                    self.legal_actions.remove("right")
+                    self.remove_actions("right")
                 except ValueError:
                     pass
         
@@ -74,33 +78,38 @@ class Pacman:
 
     # if there's any monster near, prioritize to escape the monster reach first
     def move(self, global_map):
+        optimal_moves = self.search_for_best_move()
+        move = []
         # always keep the manhattan distance from the monster at least 2 or more
         monster_in_danger_zone = self.monster_sense(global_map)
         # there is some monster near by
-        # escaping first
+        # escaping first while trying to reach the goal
         if len(monster_in_danger_zone) != 0:
             self.escaping_monster(monster_in_danger_zone)
             # after limiting the legal actions, we can move in the most reasonable direction or standing still if there is no options left
             
-            move = self.search_for_best_move()
-            return move
+        #checking if optimal moves is in legal actions
+        for i in optimal_moves:
+            if i in self.legal_actions:
+                    move.append(i)
+            
+            # if all optiomal moves is ilegal
+        if (len(move) == 0):
+            move = copy.deepcopy(self.legal_actions)
 
-        else:
-            # continue to scan the map 
-            if (self.map_scaned == False):
-            
-                pass
-            #get to the nearest goal
-            
-            else :
-                # move normaly to try to get the food
-                pass
+            # if there is more than one possible move, random the moves
+        return move[0] 
+
 
 
     # with the current view, calculate the manhattan distance of tiles that packman can currently see
-    def calculate_manhattan_distance(self):
+    # also return the danger zone
+    # this is tell pacman what's there in it's vicinity
+    # including foods, wall, monsters
+  
+    def calculate_manhattan_distance(self,global_map):
         radius = int (view/2)
-        total = view * view  # the maximum number of tiles that pacman can see
+        
         #this contains the coordinate of all the titles that has manhattan distance <=2
         danger_zone = []
 
@@ -112,11 +121,16 @@ class Pacman:
                 if (x<0 or x >= self.map.width) :
                     continue
                 self.manhattan_distance.data[y][x] = manhattandistance(self.location, [x,y])
+                self.map.data[y][x] = global_map.data[y][x]
+
                 if (manhattandistance(self.location, [x,y]) <= 2):
                     danger_zone.append([x,y])
 
         return danger_zone
     
+    # this is tell pacman what's there in it's vicinity
+    # including foods, wall, monsters
+  
     def generate_goal_possitions_for_map_scanning(self):
         goals_pos = []
         radius = int(view/2)
@@ -160,7 +174,29 @@ class Pacman:
 
     # the search function to find all the best move from the given successor
     def search_for_best_move(self):
-        pass
+        # moving to the nearest food or the nearest goal possition
+        if (not self.map_scaned): # Map is not fully scanned, continue to scanning
+            nearest, distance = self.closet_goal(self.goals_pos)
+        
+        else: #Map is fully scanned, now it's collecting the foods
+            nearest, distance = self.closet_goal(self.food_pos)
+
+        # now looking for possible move to get to the goal
+        optimal_moves = []
+        if (self.location[0] > nearest[0]): #pacman is currently on the right of it's goal
+            optimal_moves.append("left")
+
+        if (self.location[0] < nearest[0]):
+            optimal_moves.append["right"]
+
+        if (self.location[1] > nearest[1]):
+            optimal_moves.append["down"]
+
+        if (self.location[1] < nearest[1]):
+            optimal_moves.append["up"]
+        
+        return optimal_moves
+
 
     # the current location has food
     def eat_food(self):
@@ -178,4 +214,31 @@ class Pacman:
         return l
 
 
+    def closet_goal(self, goals): 
+        # goals is the list of goals that pacman is trying to reach, either goals_pos or food_pos
+        x = self.location[0]
+        y = self.location[1]
 
+        minimum = 99999999
+        nearest = []
+        for l in goals:
+            goal_x = l[0]
+            goal_y = l[1]
+            tmp = manhattandistance([x,y],[goal_x,goal_y])
+            if tmp < minimum:
+                minimum = tmp
+                nearest = copy.deepcopy(l)
+
+        return nearest, minimum
+
+    def random_move(self, move):
+        #if there is just one possible move
+        if (len(move) == 1):
+            return move[0]
+
+        #forcing pacman to move instead of standing still while it's possible
+        self.remove_actions("still")
+
+        seed(1)
+        value = randint(0,len(move)-1)
+        return move[value]
