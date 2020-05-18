@@ -25,6 +25,9 @@ class Pacman:
 
         self.food_pos = [] #this contains the list of food locations that pacman need to reach
 
+    def update(self, new_location):
+        self.location = copy.deepcopy(new_location)
+
     def remove_actions(self, direction):        
         try:
             self.legal_actions.remove(direction)
@@ -76,8 +79,9 @@ class Pacman:
         
         
 
-    # if there's any monster near, prioritize to escape the monster reach first
+    # if there's any monster near, prioritize to escape the monster's reach first
     def move(self, global_map):
+
         optimal_moves = self.search_for_best_move()
         move = []
         # always keep the manhattan distance from the monster at least 2 or more
@@ -98,9 +102,42 @@ class Pacman:
             move = copy.deepcopy(self.legal_actions)
 
             # if there is more than one possible move, random the moves
-        return move[0] 
+        
+        direction = self.random_move(move)
+        x = self.location[0]
+        y = self.location[1]
+        if ( direction == "left" ):
+            new_x = x - 1
+            new_location = [new_x, y]
 
+            global_map.update(self.location, new_location, self.symbol.pacman)
+            
+            return
 
+        if ( direction == "right" ):
+            new_x = x + 1  
+            new_location = [new_x, y]
+
+            global_map.update(self.location, new_location, self.symbol.pacman)
+
+            return 
+
+        if ( direction == "up" ):
+            new_y = y - 1  
+            new_location = [x, new_y]
+
+            global_map.update(self.location, new_location, self.symbol.pacman)
+
+            return
+
+        if ( direction == "down" ):
+            new_y = y + 1  
+            new_location = [x, new_y]
+
+            global_map.update(self.location, new_location, self.symbol.pacman)
+
+            return
+        
 
     # with the current view, calculate the manhattan distance of tiles that packman can currently see
     # also return the danger zone
@@ -200,8 +237,11 @@ class Pacman:
 
     # the current location has food
     def eat_food(self):
-        self.food = self.food - 1                  
-        pass
+        self.food = self.food - 1
+        if self.food <=0 :
+            return self.win_game()                  
+
+        return "NomNom"
 
     # when pacman has gather all the foods
     def win_game(self):

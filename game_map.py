@@ -9,23 +9,29 @@ class Map:
 
         #GENERATE AN OPEN EMPTY MAP
         #this should be the map loading stage
-        self.data = [[self.symbol.empty for y in range(height)] for x in range(width)] # generate the map data[y-coordinate][x-coordinate]
+        empty_list = []
+        self.data = [[ empty_list for y in range(height)] for x in range(width)]#initialize the map data[y-coordinate][x-coordinate]
         
         # this is for pacman to check if it's scan the whole map yet
         self.checked = [[0 for y in range(height)] for x in range(width)]
 
     # update all the agents new location
-    def update(self, agents_new_coordinate):
-        #make a deep-copy version of the agents coordinate for easy reference
-        self.agents_coordinate = copy.deepcopy(agents_new_coordinate)
+    def update(self, agents_location, agents_new_coordinate, agent_symbol):
+        x = agents_location[0]
+        y = agents_location[1]
 
-        # agents_coordinat = {'pacman':[2,2], 'monster1':[3,3]}
-        for a in agents_new_coordinate:
-            new_x = agents_new_coordinate[a][0]
-            new_y = agents_new_coordinate[a][1]
+        new_x = agents_new_coordinate[0]
+        new_y = agents_new_coordinate[1]
+
             #[new_y][new_x]
 
-            self.data[new_y][new_x] = a
+        # removing the agent from the old location
+        try:
+            self.data[y][x].remove(agent_symbol)
+        except ValueError:
+            pass
+        #update agent's new location
+        self.data[new_y][new_x].append(agent_symbol) 
 
     def map_print(self):
         print (self.data)
@@ -36,3 +42,4 @@ class Map:
         y = possition[1]
         out = self.data[y][x]
         return out
+
