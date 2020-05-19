@@ -28,6 +28,9 @@ class Map:
         # removing the agent from the old location
         try:
             self.data[y][x].remove(agent_symbol)
+            if len(self.data[y][x]) == 0:
+                self.data[y][x] = [self.symbol.empty]
+
         except ValueError:
             pass
         #update agent's new location

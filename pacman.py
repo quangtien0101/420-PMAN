@@ -8,7 +8,8 @@ from random import randint
 class Pacman:
     def __init__ (self, location, view, map_dimension, food):
         self.location = location # a list [x,y], pacman current location
-        self.food = food # an int, the total number of food, map provided
+        self.food = food # an int, the total number of food, map provided, when it reach zero, the game ends
+        self.food_count = food # this will keep track of how many food pacman has seen
         self.view = view # an interger 5
         #Pac man has it's own map to calculate and stores the manhattan distance
         self.manhattan_distance = Map(map_dimension[0], map_dimension[1])
@@ -78,20 +79,27 @@ class Pacman:
                     pass
         
         
-
+    
     # if there's any monster near, prioritize to escape the monster's reach first
     def move(self, global_map):
 
+        monster_in_danger_zone = self.monster_sense(global_map)
         optimal_moves = self.search_for_best_move()
         move = []
         # always keep the manhattan distance from the monster at least 2 or more
-        monster_in_danger_zone = self.monster_sense(global_map)
         # there is some monster near by
         # escaping first while trying to reach the goal
         if len(monster_in_danger_zone) != 0:
             self.escaping_monster(monster_in_danger_zone)
             # after limiting the legal actions, we can move in the most reasonable direction or standing still if there is no options left
             
+
+        # check if the map is fully scaned or pacman has the all the location of the food
+        if (self.map_scaned == False or self.food_count == 0):
+            self.resolving_wall_goal()
+            pass
+
+
         #checking if optimal moves is in legal actions
         for i in optimal_moves:
             if i in self.legal_actions:
@@ -145,7 +153,7 @@ class Pacman:
     # including foods, wall, monsters
   
     def calculate_manhattan_distance(self,global_map):
-        radius = int (view/2)
+        radius = int (self.view/2)
         
         #this contains the coordinate of all the titles that has manhattan distance <=2
         danger_zone = []
@@ -159,6 +167,8 @@ class Pacman:
                     continue
                 self.manhattan_distance.data[y][x] = manhattandistance(self.location, [x,y])
                 self.map.data[y][x] = global_map.data[y][x]
+                # pacman now remember that it has scan this coordinate
+                self.map.checked[y][x] = 1
 
                 if (manhattandistance(self.location, [x,y]) <= 2):
                     danger_zone.append([x,y])
@@ -189,30 +199,48 @@ class Pacman:
         
 
     # Pacman will try to scan the whole map to know where all the food is
-    def map_scanning(self):
-        # check if the map of pacman is complete
-        x = 1
-        for i in self.map.checked:
-            if 0 in i:
-                x = 0
-                break
-        if (x == 1):
-            return 1 
-    
+    # if there is a wall at pacman goal break every node suronding that and make it goals   
+    def resolving_wall_goal(self):
+        for i in self.goals_pos:
+            px = i[0]
+            py = i[1]
 
-        #start to scan the map
-        #pacman will remember everyfood that it's see and store it into it's own map
-        #but it has to avoid monster while doing so
+            if (self.symbol.wall in self.map.data[py][px]):
+                self.goals_pos.remove(i)
+                radius = int (self.view / 2)
+                
+                for y in range(self.location[1] - radius, self.location[1] + radius +1 ,1):
+                    if (y<0 or y >= self.map.height):
+                        continue
+            
+                    for x in range(self.location[0]-radius, self.location[0] +radius + 1, 1):
+                        if (x<0 or x >= self.map.width) :
+                            continue
+                
+                        if (x == 0 and y == 0):
+                            continue
+
+                        # we don't want to add a goal where we already visited/ scaned
+                        if (self.map.checked[y][x] > 0):
+                            continue
+                        # or else we will add it to our goal
+                        self.goals_pos.append([x,y])
+                
         
-        
-        return 0
+                
 
 
+    # we will callculate the manhattan distance from the goal node to every node within the view radius
+    # pick 2 node that has the smallest distance while they're on the opposite side of each other
+    # relatively to the goal node
 
     # the search function to find all the best move from the given successor
     def search_for_best_move(self):
         # moving to the nearest food or the nearest goal possition
         if (not self.map_scaned): # Map is not fully scanned, continue to scanning
+            # removing goals that pacman has already scan
+            self.resolving_wall_goal()
+            self.removing_goal_pos()
             nearest, distance = self.closet_goal(self.goals_pos)
         
         else: #Map is fully scanned, now it's collecting the foods
@@ -282,3 +310,14 @@ class Pacman:
         seed(1)
         value = randint(0,len(move)-1)
         return move[value]
+
+
+    # this will removing any goal that pacman has already seen 
+    def removing_goal_pos(self):
+        for i in self.goals_pos:
+            x = i[0]
+            y = i[1]
+
+            if (self.map.checked[y][x] == 1):
+                self.goals_pos.remove(i)
+        pass
