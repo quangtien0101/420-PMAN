@@ -40,7 +40,11 @@ class Map:
         self.data[new_y][new_x] = copy.deepcopy(l)
 
     def map_print(self):
-        print (self.data)
+        #print (self.data)
+        for y in range(self.height):
+            print(self.data[y])
+            
+
         print ("\n")
 
     def view_a_possition(self,possition):
@@ -51,3 +55,20 @@ class Map:
 
     def map_dimension(self):
         return [self.width, self.height]
+
+    def load_food(self, foods):
+        for i in foods:
+            self.update(i,i,self.symbol.food)
+
+    def load_agents(self, agents):
+        for a in agents:
+            self.update(a.location, a.location, a.my_symbol)
+
+    def remove_food(self, food_location):
+        x = food_location[0]
+        y = food_location[1]
+
+        try:
+            self.data[y][x].remove(self.symbol.food)
+        except:
+            pass

@@ -3,6 +3,8 @@ from misc import *
 from random import seed
 from random import randint
 
+import copy
+
 class Monster:
     def __init__ (self, location, view, map_dimension):
 
@@ -21,11 +23,50 @@ class Monster:
             print ("directions not in current legal actions")
 
 
-    def move(self):
+    def move(self,global_map):
         direction = self.random_move(self.legal_actions)
-        print("Monster randomly moving")
-        return direction
+        print("Monster moving ...")
 
+        x = self.location[0]
+        y = self.location[1]
+
+        if ( direction == "still" ):
+            global_map.update(self.location, self.location, self.my_symbol)
+            return
+
+        if ( direction == "left" ):
+            new_x = x - 1
+            new_location = [new_x, y]
+
+            global_map.update(self.location, new_location, self.my_symbol)
+            self.update(new_location)
+            
+            return
+
+        if ( direction == "right" ):
+            new_x = x + 1  
+            new_location = [new_x, y]
+
+            global_map.update(self.location, new_location, self.my_symbol)
+            self.update(new_location)
+            return 
+
+        if ( direction == "up" ):
+            new_y = y - 1  
+            new_location = [x, new_y]
+
+            global_map.update(self.location, new_location, self.my_symbol)
+            self.update(new_location)
+            return
+
+        if ( direction == "down" ):
+            new_y = y + 1  
+            new_location = [x, new_y]
+
+            global_map.update(self.location, new_location, self.my_symbol)
+            self.update(new_location)
+            return
+        
      
     def random_move(self, move):
         #if there is just one possible move
@@ -33,8 +74,13 @@ class Monster:
             return move[0]
 
         #forcing pacman to move instead of standing still while it's possible
-        self.remove_actions("still")
-
+        try:
+            self.remove_actions("still")
+        except:
+            pass
         seed(1)
         value = randint(0,len(move)-1)
         return move[value]
+
+    def update(self, new_location):
+        self.location = copy.deepcopy(new_location)

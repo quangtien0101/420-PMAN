@@ -121,11 +121,17 @@ class Pacman:
         direction = self.random_move(move)
         x = self.location[0]
         y = self.location[1]
+
+        if ( direction == "still" ):
+            global_map.update(self.location, self.location, self.symbol.pacman)
+            return
+
         if ( direction == "left" ):
             new_x = x - 1
             new_location = [new_x, y]
 
             global_map.update(self.location, new_location, self.symbol.pacman)
+            self.update(new_location)
             
             return
 
@@ -134,7 +140,7 @@ class Pacman:
             new_location = [new_x, y]
 
             global_map.update(self.location, new_location, self.symbol.pacman)
-
+            self.update(new_location)
             return 
 
         if ( direction == "up" ):
@@ -142,7 +148,7 @@ class Pacman:
             new_location = [x, new_y]
 
             global_map.update(self.location, new_location, self.symbol.pacman)
-
+            self.update(new_location)
             return
 
         if ( direction == "down" ):
@@ -150,7 +156,7 @@ class Pacman:
             new_location = [x, new_y]
 
             global_map.update(self.location, new_location, self.symbol.pacman)
-
+            self.update(new_location)
             return
         
 
@@ -177,15 +183,14 @@ class Pacman:
 
                 self.map.data[y][x] = copy.deepcopy(global_map.data[y][x])
                 
-                # pacman now remember that it has scan this coordinate
-                
-                if (self.map.checked[y][x] == 0):
-                    self.map.checked[y][x] = 1
-                    if (self.symbol.food in self.map.data[y][x]):
+                # pacman now remember that it has scan this coordinate                
+                if (self.symbol.food in self.map.data[y][x]):
+                    if ([x,y] not in self.food_pos):
                         self.food_count = self.food_count - 1
+                        self.food_pos.append([x,y])
 
-                        if (self.food_count == 0):
-                            self.map_scaned = True
+                    if (self.food_count == 0):
+                        self.map_scaned = True
 
 
                 
@@ -257,28 +262,47 @@ class Pacman:
     # the search function to find all the best move from the given successor
     def search_for_best_move(self):
         # moving to the nearest food or the nearest goal possition
-        if (not self.map_scaned or self.food_count > 0): # Map is not fully scanned, continue to scanning
+
+        if (self.map_scaned == False or self.food_count > 0): # Map is not fully scanned
             # removing goals that pacman has already scan
             self.resolving_wall_goal()
             self.removing_goal_pos()
-            nearest, distance = self.closet_goal(self.goals_pos)
-        
-        else: #Map is fully scanned, now it's collecting the foods
-            nearest, distance = self.closet_goal(self.food_pos)
+            nearest_goal_pos, distance = self.closet_goal(self.goals_pos)
+        else:
+            nearest_goal_pos = []
 
+        nearest_food, distance = self.closet_goal(self.food_pos)
+
+        nearest = []
+
+        if (len (nearest_food) == 0):
+            nearest = copy.deepcopy(nearest_goal_pos)
+
+        elif (len (nearest_goal_pos) == 0):
+            nearest = copy.deepcopy(nearest_food)
+
+        else:
+            distance_1 = manhattandistance(self.location, nearest_goal_pos)
+            distance_2 = manhattandistance(self.location, nearest_food)
+
+            if (distance_1 < distance_2):
+                nearest = copy.deepcopy(nearest_goal_pos)
+                
+            else:
+                nearest = copy.deepcopy(nearest_food)
         # now looking for possible move to get to the goal
         optimal_moves = []
         if (self.location[0] > nearest[0]): #pacman is currently on the right of it's goal
             optimal_moves.append("left")
 
         if (self.location[0] < nearest[0]):
-            optimal_moves.append["right"]
+            optimal_moves.append("right")
 
         if (self.location[1] > nearest[1]):
-            optimal_moves.append["down"]
+            optimal_moves.append("up")
 
         if (self.location[1] < nearest[1]):
-            optimal_moves.append["up"]
+            optimal_moves.append("down")
         
         return optimal_moves
 
@@ -286,7 +310,10 @@ class Pacman:
     # the current location has food
     def eat_food(self):
         self.food = self.food - 1
-        if self.food <=0 :
+        # removing the food from the map and the goal
+
+
+        if (self.food <=0) :
             return self.win_game()                  
 
         return "NomNom"
@@ -325,7 +352,10 @@ class Pacman:
             return move[0]
 
         #forcing pacman to move instead of standing still while it's possible
-        self.remove_actions("still")
+        try:
+            self.remove_actions("still")
+        except:
+            pass
 
         seed(1)
         value = randint(0,len(move)-1)
@@ -343,19 +373,28 @@ class Pacman:
             if (self.map.checked[y][x] == 1):
                 self.goals_pos.remove(i)
 
-        pass
+        
 
     def current_possition_checked(self):
         x = self.location[0]
         y = self.location[1]
+
+        # mark that it has visited this place
+        self.map.checked[y][x] = 1
 
         if (self.map_scaned == False):
             try:
                 self.goals_pos.remove([x,y])
             except ValueError:
                 pass
-        
+        # remove the food from the current goals
         try:
             self.food_pos.remove([x,y])
         except ValueError:
+            pass
+
+        # remove the food from the map
+        try:
+            self.map.remove_food([x,y])
+        except:
             pass

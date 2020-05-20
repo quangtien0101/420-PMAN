@@ -5,10 +5,11 @@ from monster import *
 from game_map import*
 from misc import *
 
+import sys
+
+
 symbol = Symbol()
-isWin = False
-game_over = False
-food_number = 1
+
 
 def get_legal_actions(agent, Map):
     #Don't let the agent move out side the map or to go through wall
@@ -52,63 +53,70 @@ def state_check(pacman, global_map):
     # there is food at pacman's current location
     if symbol.food in global_map.data[y][x]:
         result = pacman.eat_food()
+        global_map.remove_food([x,y])
         if result == "win":
-            isWin = True
             print ("Pacman win the game!")
-
+            return True
+    
     # there is a monster at pacman's current location
     if (symbol.monster in global_map.data[y][x]):
-        game_over = True
+        print("Pacman die")
+        return True
+
+    return False
 
 def main():
     #generate maps
     #generate agents location
 
 
-    score = 0
-
+    # define a 8 X 8 map
     global_map = Map(8, 8)
 
-    food_pos = [[1,1],[3,3]]
+    food_pos = [[7,4],[3,3]]
     food_number = len(food_pos)
 
     map_dimension = global_map.map_dimension()
 
 # initialize pacman and monster locations
     pman = Pacman([4,4],5,map_dimension,food_number)
-    monster1 = Monster([4,3],5,map_dimension)
+    monster1 = Monster([1,1],5,map_dimension)
 
     agents = [pman, monster1]
 
-    global_map.map_print()
+    
     # add agents into the map
-    for a in agents:
-        global_map.update(a.location,a.location,a.my_symbol)
-
+    global_map.load_agents(agents)
+    # add food into the map
+    global_map.load_food(food_pos)
+    
     global_map.map_print()
 
-    #state_check(pman, global_map)
+    state_check(pman, global_map)
 
-    # i = 100 # a variable just to make the loop stop, removing later
+    i = 100 # a variable just to make the loop stop, removing later
 
-    # while (not isWin or not game_over):
+    finish = False
+
+    while (True):
         
-
-    #     for a in agents:
-    #         get_legal_actions(a,global_map)
-    #         # agent moves and global map update it's location
-    #         a.move(global_map)
         
-    #     state_check(pman, global_map)
+        for a in agents:
+            get_legal_actions(a,global_map)
+            # agent moves and global map update it's location
+            a.move(global_map)
+            
+    
+        finish = state_check(pman, global_map)
+        global_map.map_print()
 
-    #     global_map.map_print()
-        
-    #     i = i - 1
-    #     print(i)
-    #     if (i <= 0):
-    #         break
-    #     #Map.update
-    #     #Score.update
+        if finish:
+            break
+
+        i = i - 1
+        if (i <= 0):
+            print("Preemptive to end the game")
+            break
 
 
     print ("The game finish")
