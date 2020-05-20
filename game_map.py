@@ -17,6 +17,7 @@ class Map:
 
     # update all the agents new location
     def update(self, agents_location, agents_new_coordinate, agent_symbol):
+
         x = agents_location[0]
         y = agents_location[1]
 
@@ -34,7 +35,9 @@ class Map:
         except ValueError:
             pass
         #update agent's new location
-        self.data[new_y][new_x].append(agent_symbol) 
+        l = copy.deepcopy(self.data[new_y][new_x])
+        l.append(agent_symbol)
+        self.data[new_y][new_x] = copy.deepcopy(l)
 
     def map_print(self):
         print (self.data)
@@ -46,3 +49,5 @@ class Map:
         out = self.data[y][x]
         return out
 
+    def map_dimension(self):
+        return [self.width, self.height]

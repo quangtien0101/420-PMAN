@@ -19,6 +19,7 @@ class Pacman:
         self.legal_actions = ["up","down","left","right","still"]        
         
         self.symbol = Symbol()
+        self.my_symbol = self.symbol.pacman
 
         # this will be the goals that pacman will try to reach in order to scan the map
         self.goals_pos = self.generate_goal_possitions_for_map_scanning()
@@ -82,10 +83,16 @@ class Pacman:
     
     # if there's any monster near, prioritize to escape the monster's reach first
     def move(self, global_map):
+        # removing the current position form any goals
+        self.current_possition_checked()    
 
         monster_in_danger_zone = self.monster_sense(global_map)
         optimal_moves = self.search_for_best_move()
         move = []
+        # we already scan the map
+        if (len(self.goals_pos) == 0):
+            self.map_scaned = True
+        
         # always keep the manhattan distance from the monster at least 2 or more
         # there is some monster near by
         # escaping first while trying to reach the goal
@@ -95,7 +102,7 @@ class Pacman:
             
 
         # check if the map is fully scaned or pacman has the all the location of the food
-        if (self.map_scaned == False or self.food_count == 0):
+        if (self.map_scaned == False or self.food_count > 0):
             self.resolving_wall_goal()
             pass
 
@@ -166,9 +173,22 @@ class Pacman:
                 if (x<0 or x >= self.map.width) :
                     continue
                 self.manhattan_distance.data[y][x] = manhattandistance(self.location, [x,y])
-                self.map.data[y][x] = global_map.data[y][x]
+
+
+                self.map.data[y][x] = copy.deepcopy(global_map.data[y][x])
+                
                 # pacman now remember that it has scan this coordinate
-                self.map.checked[y][x] = 1
+                
+                if (self.map.checked[y][x] == 0):
+                    self.map.checked[y][x] = 1
+                    if (self.symbol.food in self.map.data[y][x]):
+                        self.food_count = self.food_count - 1
+
+                        if (self.food_count == 0):
+                            self.map_scaned = True
+
+
+                
 
                 if (manhattandistance(self.location, [x,y]) <= 2):
                     danger_zone.append([x,y])
@@ -180,7 +200,7 @@ class Pacman:
   
     def generate_goal_possitions_for_map_scanning(self):
         goals_pos = []
-        radius = int(view/2)
+        radius = int(self.view/2)
         x = 0
         y = 0
         while (x < self.map.width):
@@ -237,7 +257,7 @@ class Pacman:
     # the search function to find all the best move from the given successor
     def search_for_best_move(self):
         # moving to the nearest food or the nearest goal possition
-        if (not self.map_scaned): # Map is not fully scanned, continue to scanning
+        if (not self.map_scaned or self.food_count > 0): # Map is not fully scanned, continue to scanning
             # removing goals that pacman has already scan
             self.resolving_wall_goal()
             self.removing_goal_pos()
@@ -314,10 +334,28 @@ class Pacman:
 
     # this will removing any goal that pacman has already seen 
     def removing_goal_pos(self):
+
+
         for i in self.goals_pos:
             x = i[0]
             y = i[1]
 
             if (self.map.checked[y][x] == 1):
                 self.goals_pos.remove(i)
+
         pass
+
+    def current_possition_checked(self):
+        x = self.location[0]
+        y = self.location[1]
+
+        if (self.map_scaned == False):
+            try:
+                self.goals_pos.remove([x,y])
+            except ValueError:
+                pass
+        
+        try:
+            self.food_pos.remove([x,y])
+        except ValueError:
+            pass

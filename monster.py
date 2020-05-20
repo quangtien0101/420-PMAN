@@ -1,16 +1,18 @@
 #!/usr/local/bin/python3.7
-
+from misc import *
 from random import seed
 from random import randint
 
 class Monster:
-    def __init__ (self, location, view, map_dimension, food):
+    def __init__ (self, location, view, map_dimension):
+
         self.location = location # a list [x,y], pacman current location
-        self.food = food # an int, the total number of food, map provided
         self.view = view # an interger 5
 
         self.legal_actions = ["up","down","left","right","still"]        
 
+        self.symbol = Symbol()
+        self.my_symbol = self.symbol.monster
 
     def remove_actions(self, direction):        
         try:
@@ -20,7 +22,9 @@ class Monster:
 
 
     def move(self):
+        direction = self.random_move(self.legal_actions)
         print("Monster randomly moving")
+        return direction
 
      
     def random_move(self, move):

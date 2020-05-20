@@ -54,6 +54,7 @@ def state_check(pacman, global_map):
         result = pacman.eat_food()
         if result == "win":
             isWin = True
+            print ("Pacman win the game!")
 
     # there is a monster at pacman's current location
     if (symbol.monster in global_map.data[y][x]):
@@ -68,36 +69,46 @@ def main():
 
     global_map = Map(8, 8)
 
+    food_pos = [[1,1],[3,3]]
+    food_number = len(food_pos)
+
+    map_dimension = global_map.map_dimension()
+
 # initialize pacman and monster locations
-    pman = Pacman([4,4],5,[5,5],food_number)
-    monster1 = Monster([4,4],5,[5,5])
+    pman = Pacman([4,4],5,map_dimension,food_number)
+    monster1 = Monster([4,3],5,map_dimension)
 
     agents = [pman, monster1]
 
     global_map.map_print()
+    # add agents into the map
+    for a in agents:
+        global_map.update(a.location,a.location,a.my_symbol)
 
-    state_check(pman, global_map)
+    global_map.map_print()
 
-    i = 100 # a variable just to make the loop stop, removing later
+    #state_check(pman, global_map)
 
-    while (not isWin or not game_over):
+    # i = 100 # a variable just to make the loop stop, removing later
+
+    # while (not isWin or not game_over):
         
 
-        for a in agents:
-            get_legal_actions(a,global_map)
-            # agent moves and global map update it's location
-            a.move(global_map)
+    #     for a in agents:
+    #         get_legal_actions(a,global_map)
+    #         # agent moves and global map update it's location
+    #         a.move(global_map)
         
-        state_check(pman, global_map)
+    #     state_check(pman, global_map)
 
-        global_map.map_print()
+    #     global_map.map_print()
         
-        i = i - 1
-        print(i)
-        if (i <= 0):
-            break
-        #Map.update
-        #Score.update
+    #     i = i - 1
+    #     print(i)
+    #     if (i <= 0):
+    #         break
+    #     #Map.update
+    #     #Score.update
 
 
     print ("The game finish")
