@@ -30,7 +30,7 @@ class Map:
         try:
             self.data[y][x].remove(agent_symbol)
             if len(self.data[y][x]) == 0:
-                self.data[y][x] = [self.symbol.empty]
+                self.data[y][x] = copy.deepcopy([])
 
         except ValueError:
             pass
@@ -59,6 +59,10 @@ class Map:
     def load_food(self, foods):
         for i in foods:
             self.update(i,i,self.symbol.food)
+
+    def load_wall(self, walls):
+        for i in walls:
+            self.update(i,i,self.symbol.wall)
 
     def load_agents(self, agents):
         for a in agents:

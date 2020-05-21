@@ -1,3 +1,7 @@
+Pacman will always has 2 goals list:
+	one is for the food that it has seen
+	one is for exploring the map to find food when the food list is empty
+
 Running a map with static monster and 2 food
 adding food possition and removing food possition is not working properly
 	fixed!
@@ -5,5 +9,7 @@ adding food possition and removing food possition is not working properly
 Making the monster move randomly
 	done but it's very dump
 
-Test when pacman is spawn near some monsters
+Test when pacman is spawn near some monsters (not tested yet)
+
+
 

@@ -16,6 +16,8 @@ class Monster:
         self.symbol = Symbol()
         self.my_symbol = self.symbol.monster
 
+        self.smart = False
+
     def remove_actions(self, direction):        
         try:
             self.legal_actions.remove(direction)
@@ -78,9 +80,11 @@ class Monster:
             self.remove_actions("still")
         except:
             pass
-        seed(1)
         value = randint(0,len(move)-1)
         return move[value]
 
     def update(self, new_location):
         self.location = copy.deepcopy(new_location)
+
+    def make_monster_smart (self):
+        self.smart = True

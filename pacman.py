@@ -27,6 +27,8 @@ class Pacman:
 
         self.food_pos = [] #this contains the list of food locations that pacman need to reach
 
+        self.previous = [] #this contains pacman previous location, this will help it not to visit back the location when it's possible
+
     def update(self, new_location):
         self.location = copy.deepcopy(new_location)
 
@@ -47,9 +49,7 @@ class Pacman:
             x = i[0]
             y = i[1]
 
-            content = global_map.view_a_possition(i)
-
-            if (content == self.symbol.monster):
+            if (self.symbol.monster in global_map.data[y][x]):
                 monster_location.append(i)
 
         return monster_location
@@ -61,15 +61,15 @@ class Pacman:
             if (i[0] < self.location[0]): # don't go left
                 self.remove_actions("left")
 
-            if (i[1] > self.locationp[1]): #don't go up
+            if (i[1] > self.location[1]): #don't go down
                 try:                    
-                    self.remove_actions("up")
+                    self.remove_actions("down")
                 except ValueError:
                     pass
 
-            if (i[1] < self.location[1]): #don't go down
+            if (i[1] < self.location[1]): #don't go up
                 try:                    
-                    self.remove_actions("down")
+                    self.remove_actions("up")
                 except ValueError:
                     pass
 
@@ -119,6 +119,9 @@ class Pacman:
             # if there is more than one possible move, random the moves
         
         direction = self.random_move(move)
+
+        self.previous = copy.deepcopy(self.location)
+
         x = self.location[0]
         y = self.location[1]
 
@@ -278,18 +281,10 @@ class Pacman:
         if (len (nearest_food) == 0):
             nearest = copy.deepcopy(nearest_goal_pos)
 
-        elif (len (nearest_goal_pos) == 0):
+        else:
             nearest = copy.deepcopy(nearest_food)
 
-        else:
-            distance_1 = manhattandistance(self.location, nearest_goal_pos)
-            distance_2 = manhattandistance(self.location, nearest_food)
 
-            if (distance_1 < distance_2):
-                nearest = copy.deepcopy(nearest_goal_pos)
-                
-            else:
-                nearest = copy.deepcopy(nearest_food)
         # now looking for possible move to get to the goal
         optimal_moves = []
         if (self.location[0] > nearest[0]): #pacman is currently on the right of it's goal
@@ -356,6 +351,32 @@ class Pacman:
             self.remove_actions("still")
         except:
             pass
+
+        # forcing pacman not to move to revisit the previous location if its possible
+        for direction in move:
+            x = self.location[0]
+            y = self.location[1]
+            
+
+            if ( direction == "left" ):
+                new_x = x - 1
+                new_location = [new_x, y]
+
+            elif ( direction == "right" ):
+                new_x = x + 1  
+                new_location = [new_x, y]
+
+            elif ( direction == "up" ):
+                new_y = y - 1  
+                new_location = [x, new_y]
+        
+            elif ( direction == "down" ):
+                new_y = y + 1  
+                new_location = [x, new_y]
+
+            if (len(move) > 1):
+                if (self.previous == new_location):
+                    move.remove(direction)
 
         seed(1)
         value = randint(0,len(move)-1)

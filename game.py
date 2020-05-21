@@ -19,27 +19,27 @@ def get_legal_actions(agent, Map):
     #reset the legal actions before striping the illegal
     agent.legal_actions = ["up","left","down","right","still"]
     if (x > 0):
-        if (Map.data[y][x-1] == Map.symbol.wall):
+        if (symbol.wall in Map.data[y][x-1]):
             agent.remove_actions("left")
     else:
         agent.remove_actions("left")
 
     if (x < Map.width -1):
-        if (Map.data[y][x+1] == Map.symbol.wall):
+        if (symbol.wall in Map.data[y][x+1]):
             agent.remove_actions("right")
 
     else:
         agent.remove_actions("right")
 
     if (y > 0):
-        if (Map.data[y-1][x] == Map.symbol.wall):
+        if (symbol.wall in Map.data[y-1][x]):
             agent.remove_actions("up")
             
     else:
         agent.remove_actions("up")
 
     if (y < Map.height - 1):
-        if (Map.data[y+1][x] == Map.symbol.wall):
+        if (symbol.wall in Map.data[y+1][x]):
             agent.remove_actions("down")
     else:
             agent.remove_actions("down")
@@ -73,16 +73,18 @@ def main():
     # define a 8 X 8 map
     global_map = Map(8, 8)
 
-    food_pos = [[7,4],[3,3]]
+    food_pos = [[4,1]]
     food_number = len(food_pos)
+
+    wall_pos = [[7,5]]
 
     map_dimension = global_map.map_dimension()
 
 # initialize pacman and monster locations
     pman = Pacman([4,4],5,map_dimension,food_number)
-    monster1 = Monster([1,1],5,map_dimension)
-
-    agents = [pman, monster1]
+    monster1 = Monster([4,3],5,map_dimension)
+    monster2 = Monster([4,3],5,map_dimension)
+    agents = [pman, monster1, monster2]
 
     
     # add agents into the map
@@ -90,11 +92,13 @@ def main():
     # add food into the map
     global_map.load_food(food_pos)
     
+    # add wall into the map
+    global_map.load_wall(wall_pos)
     global_map.map_print()
 
     state_check(pman, global_map)
 
-    i = 100 # a variable just to make the loop stop, removing later
+    i = 100000 # a variable just to make the loop stop, removing later
 
     finish = False
 
@@ -121,4 +125,4 @@ def main():
 
     print ("The game finish")
 if __name__ == "__main__":
-    main()
+    main() 
