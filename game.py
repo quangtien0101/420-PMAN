@@ -76,15 +76,15 @@ def main():
     food_pos = [[4,1]]
     food_number = len(food_pos)
 
-    wall_pos = [[7,5]]
+    wall_pos = [[7,5],[4,2],[3,2],[5,2],[3,1]]
 
     map_dimension = global_map.map_dimension()
 
 # initialize pacman and monster locations
     pman = Pacman([4,4],5,map_dimension,food_number)
-    monster1 = Monster([4,3],5,map_dimension)
-    monster2 = Monster([4,3],5,map_dimension)
-    agents = [pman, monster1, monster2]
+    monster1 = Monster([0,0],5,map_dimension)
+    #monster2 = Monster([4,3],5,map_dimension)
+    agents = [pman]
 
     
     # add agents into the map

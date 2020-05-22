@@ -29,6 +29,7 @@ class Pacman:
 
         self.previous = [] #this contains pacman previous location, this will help it not to visit back the location when it's possible
 
+        self.hack_map = False #this indicate if pacman has the full view of the map
     def update(self, new_location):
         self.location = copy.deepcopy(new_location)
 
@@ -89,9 +90,9 @@ class Pacman:
         monster_in_danger_zone = self.monster_sense(global_map)
         optimal_moves = self.search_for_best_move()
         move = []
-        # we already scan the map
+        
         if (len(self.goals_pos) == 0):
-            self.map_scaned = True
+            self.generate_new_goals()
         
         # always keep the manhattan distance from the monster at least 2 or more
         # there is some monster near by
@@ -104,7 +105,7 @@ class Pacman:
         # check if the map is fully scaned or pacman has the all the location of the food
         if (self.map_scaned == False or self.food_count > 0):
             self.resolving_wall_goal()
-            pass
+            
 
 
         #checking if optimal moves is in legal actions
@@ -229,32 +230,14 @@ class Pacman:
     # Pacman will try to scan the whole map to know where all the food is
     # if there is a wall at pacman goal break every node suronding that and make it goals   
     def resolving_wall_goal(self):
+        if (self.hack_map == True):
+            return
         for i in self.goals_pos:
             px = i[0]
             py = i[1]
 
             if (self.symbol.wall in self.map.data[py][px]):
                 self.goals_pos.remove(i)
-                radius = int (self.view / 2)
-                
-                for y in range(self.location[1] - radius, self.location[1] + radius +1 ,1):
-                    if (y<0 or y >= self.map.height):
-                        continue
-            
-                    for x in range(self.location[0]-radius, self.location[0] +radius + 1, 1):
-                        if (x<0 or x >= self.map.width) :
-                            continue
-                
-                        if (x == 0 and y == 0):
-                            continue
-
-                        # we don't want to add a goal where we already visited/ scaned
-                        if (self.map.checked[y][x] > 0):
-                            continue
-                        # or else we will add it to our goal
-                        self.goals_pos.append([x,y])
-                
-        
                 
 
 
@@ -265,24 +248,28 @@ class Pacman:
     # the search function to find all the best move from the given successor
     def search_for_best_move(self):
         # moving to the nearest food or the nearest goal possition
-
-        if (self.map_scaned == False or self.food_count > 0): # Map is not fully scanned
-            # removing goals that pacman has already scan
-            self.resolving_wall_goal()
-            self.removing_goal_pos()
-            nearest_goal_pos, distance = self.closet_goal(self.goals_pos)
-        else:
-            nearest_goal_pos = []
-
-        nearest_food, distance = self.closet_goal(self.food_pos)
-
-        nearest = []
-
-        if (len (nearest_food) == 0):
-            nearest = copy.deepcopy(nearest_goal_pos)
+        if (self.hack_map == True):
+            nearest = copy.deepcopy(self.food_pos)
 
         else:
-            nearest = copy.deepcopy(nearest_food)
+            if (self.map_scaned == False or self.food_count > 0): # Map is not fully scanned
+                # removing goals that pacman has already scan
+                self.resolving_wall_goal()
+                self.removing_goal_pos()
+                nearest_goal_pos, distance = self.closet_goal(self.goals_pos)
+            else:
+                nearest_goal_pos = []
+
+            nearest_food, distance = self.closet_goal(self.food_pos)
+
+            nearest = []
+
+
+            if (len(nearest_food) == 0):
+                nearest = copy.deepcopy(nearest_goal_pos)
+
+            else:
+                nearest = copy.deepcopy(nearest_food)
 
 
         # now looking for possible move to get to the goal
@@ -378,7 +365,6 @@ class Pacman:
                 if (self.previous == new_location):
                     move.remove(direction)
 
-        seed(1)
         value = randint(0,len(move)-1)
         return move[value]
 
@@ -419,3 +405,48 @@ class Pacman:
             self.map.remove_food([x,y])
         except:
             pass
+
+    # this function will be called when both goal_pos and food_pos are empty
+    def generate_new_goals(self):
+        # we will add some goal that has not been checked by pacman
+        # we could try adding 4 goal that is the left most, right most, highest, lowest that pacman hasn't visited
+        leftmost = [self.map.width,0]
+        righmost = [0,0]
+        lowest = [0,self.map.height]
+        highest = [0,0]
+
+        for i in self.map.checked:
+            if i == 0: #not checked yet
+                x = i[1]
+                y = i[0]
+
+                if (x < leftmost[0]):
+                    leftmost[0] = x
+                    leftmost[1] = y 
+                
+                if (x > righmost[0]):
+                    righmost[0] = x
+                    righmost[1] = y 
+
+                if (y < lowest[1]):
+                    lowest[0] = x
+                    lowest[1] = y
+
+                if (y > highest[1]):
+                    highest[0] = x
+                    highest[1] = y
+
+        l = [leftmost, righmost, lowest, highest]
+        unique = unique_sort_list(l) # removing duplicated goals
+        self.goals_pos = copy.deepcopy(unique)
+        return                 
+
+    # this function to tell pacman that it has the full view of the map
+    def hack_map(self, global_map):
+        self.hack_map = True
+        self.map = copy.deepcopy(global_map)
+        self.map_scaned = True
+        
+        for i in self.map.data:
+            if self.symbol.food in i:
+                self.food_pos.append(i) 

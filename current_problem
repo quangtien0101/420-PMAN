@@ -2,6 +2,10 @@ Pacman will always has 2 goals list:
 	one is for the food that it has seen
 	one is for exploring the map to find food when the food list is empty
 
+	pacman will always try to reach the nearest food
+	if there is no food, it will try to go for the nearest goal possition for explortation
+	
+
 Running a map with static monster and 2 food
 adding food possition and removing food possition is not working properly
 	fixed!
@@ -9,7 +13,18 @@ adding food possition and removing food possition is not working properly
 Making the monster move randomly
 	done but it's very dump
 
-Test when pacman is spawn near some monsters (not tested yet)
+Test if there is a wall standing before the the food
+	pacman is current stuck because it keep going back where it's comming from
+	implement a previous move so that it won't go back where it just came from when it's possible
+	
 
+Test when pacman is spawn near some monsters (tested)
 
+test level 1
+test level 2
 
+there is some problem with the old_possition
+
+=======================================
+MAP
+	should not contains L or Ushape
