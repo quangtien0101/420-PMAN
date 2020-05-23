@@ -6,11 +6,12 @@ from random import seed
 from random import randint
 
 class Pacman:
-    def __init__ (self, location, view, map_dimension, food):
+    def __init__ (self, location, view, map_dimension, food, level):
         self.location = location # a list [x,y], pacman current location
         self.food = food # an int, the total number of food, map provided, when it reach zero, the game ends
         self.food_count = food # this will keep track of how many food pacman has seen
         self.view = view # an interger 5
+        self.level = level # game level
         #Pac man has it's own map to calculate and stores the manhattan distance
         self.manhattan_distance = Map(map_dimension[0], map_dimension[1])
 
@@ -87,7 +88,9 @@ class Pacman:
         # removing the current position form any goals
         self.current_possition_checked()    
 
-        monster_in_danger_zone = self.monster_sense(global_map)
+        if (self.level >= 3):
+            monster_in_danger_zone = self.monster_sense(global_map)
+        
         optimal_moves = self.search_for_best_move()
         move = []
         
@@ -97,9 +100,10 @@ class Pacman:
         # always keep the manhattan distance from the monster at least 2 or more
         # there is some monster near by
         # escaping first while trying to reach the goal
-        if len(monster_in_danger_zone) != 0:
-            self.escaping_monster(monster_in_danger_zone)
-            # after limiting the legal actions, we can move in the most reasonable direction or standing still if there is no options left
+        if (self.level >= 3):
+            if len(monster_in_danger_zone) != 0:
+                self.escaping_monster(monster_in_danger_zone)
+                # after limiting the legal actions, we can move in the most reasonable direction or standing still if there is no options left
             
 
         # check if the map is fully scaned or pacman has the all the location of the food
@@ -342,6 +346,7 @@ class Pacman:
             x = self.location[0]
             y = self.location[1]
             
+            new_location = []
 
             if ( direction == "left" ):
                 new_x = x - 1
