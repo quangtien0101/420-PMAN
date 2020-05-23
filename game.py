@@ -76,7 +76,7 @@ def main():
     food_pos = [[4,1]]
     food_number = len(food_pos)
 
-    wall_pos = [[7,5],[4,2],[3,2],[5,2],[3,1]]
+    wall_pos = [[7,5],[4,2],[3,2],[5,2],[3,1],[3,0],[5,1]]
 
     map_dimension = global_map.map_dimension()
 

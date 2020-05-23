@@ -329,15 +329,13 @@ class Pacman:
         return nearest, minimum
 
     def random_move(self, move):
-        #if there is just one possible move
-        if (len(move) == 1):
-            return move[0]
 
         #forcing pacman to move instead of standing still while it's possible
-        try:
-            self.remove_actions("still")
-        except:
-            pass
+        if (len(move)>1):
+            try:
+                move.remove("still")
+            except:
+                pass
 
         # forcing pacman not to move to revisit the previous location if its possible
         for direction in move:
@@ -361,10 +359,30 @@ class Pacman:
                 new_y = y + 1  
                 new_location = [x, new_y]
 
-            if (len(move) > 1):
-                if (self.previous == new_location):
+            #this will remove the direction that lead pacman back where it just at
+            #if pacman currently has only that move, we will try to run different move in the legal actions
+            if (self.previous == new_location):
+                if (len(move) > 1):
                     move.remove(direction)
+                    break
 
+                elif (len(move) == 1):
+                    for i in self.legal_actions:
+                        if (i == "still"):
+                            continue
+                        if (i == direction):
+                            continue
+                        move.append(i)
+                        
+                        #now check if we can remove the current direction
+                    if (len(move) == 1): #this is the only direction that pacman can go eventhough it lead pacman back to the previous place
+                        break
+                        
+                    
+                    move.remove(direction) #we can remove the current direction
+                    break
+                
+                    
         value = randint(0,len(move)-1)
         return move[value]
 
