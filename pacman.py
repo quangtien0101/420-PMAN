@@ -30,7 +30,7 @@ class Pacman:
 
         self.previous = [] #this contains pacman previous location, this will help it not to visit back the location when it's possible
 
-        self.hack_map = False #this indicate if pacman has the full view of the map
+        self.hak_map = False #this indicate if pacman has the full view of the map
     def update(self, new_location):
         self.location = copy.deepcopy(new_location)
 
@@ -87,6 +87,9 @@ class Pacman:
     def move(self, global_map):
         # removing the current position form any goals
         self.current_possition_checked()    
+
+        if (self.level < 3 and self.hak_map == False):
+            self.hack_map(global_map)
 
         if (self.level >= 3):
             monster_in_danger_zone = self.monster_sense(global_map)
@@ -234,7 +237,7 @@ class Pacman:
     # Pacman will try to scan the whole map to know where all the food is
     # if there is a wall at pacman goal break every node suronding that and make it goals   
     def resolving_wall_goal(self):
-        if (self.hack_map == True):
+        if (self.hak_map == True):
             return
         for i in self.goals_pos:
             px = i[0]
@@ -251,9 +254,11 @@ class Pacman:
 
     # the search function to find all the best move from the given successor
     def search_for_best_move(self):
+        nearest = []
+
         # moving to the nearest food or the nearest goal possition
-        if (self.hack_map == True):
-            nearest = copy.deepcopy(self.food_pos)
+        if (self.hak_map == True):
+            nearest, distance = self.closet_goal(self.food_pos)
 
         else:
             if (self.map_scaned == False or self.food_count > 0): # Map is not fully scanned
@@ -266,7 +271,6 @@ class Pacman:
 
             nearest_food, distance = self.closet_goal(self.food_pos)
 
-            nearest = []
 
 
             if (len(nearest_food) == 0):
@@ -466,10 +470,11 @@ class Pacman:
 
     # this function to tell pacman that it has the full view of the map
     def hack_map(self, global_map):
-        self.hack_map = True
+        self.hak_map = True
         self.map = copy.deepcopy(global_map)
         self.map_scaned = True
-        
-        for i in self.map.data:
-            if self.symbol.food in i:
-                self.food_pos.append(i) 
+
+        for x in range(self.map.width):
+            for y in range(self.map.height):
+                if (self.symbol.food in self.map.data[y][x]):
+                    self.food_pos.append([x,y]) 
